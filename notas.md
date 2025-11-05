@@ -1,15 +1,6 @@
-
+# Proocessos
 
 ## TO DO
-
-### Preparación de Datos (MNIST)
-
-  - priority: medium
-  - workload: Normal
-  - defaultExpanded: false
-    ```md
-    Implementar la función prepare_data para cargar, filtrar y normalizar el dataset (e.g., MNIST dígitos 5 y 6), incluyendo la división en sets de entrenamiento y prueba.
-    ```
 
 ### Definir Circuito Cuántico
 
@@ -56,6 +47,17 @@
 
 ## In Progres
 
+### Preparación de Datos (MNIST)
+
+  - priority: medium
+  - workload: Normal
+  - defaultExpanded: false
+    ```md
+    Implementar la función prepare_data para cargar, filtrar y normalizar el dataset (e.g., MNIST dígitos 5 y 6), incluyendo la división en sets de entrenamiento y prueba.
+    ```
+
+## DONE
+
 ### Setup Entorno Cuántico
 
   - priority: medium
@@ -64,6 +66,4 @@
     ```md
     Instalar todas las librerías necesarias (CUDA-Q, PyTorch, etc.) y configurar el entorno Python para el proyecto.
     ```
-
-## DONE
 
