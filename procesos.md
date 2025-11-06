@@ -2,13 +2,13 @@
 
 ## TO DO
 
-### Definir Circuito Cuántico
+### Preparación de Datos (MNIST)
 
-  - priority: high
-  - workload: Hard
+  - priority: medium
+  - workload: Normal
   - defaultExpanded: false
     ```md
-    Implementar la clase QuantumFunction o equivalente en el notebook que defina el kernel cuántico (e.g., usando ry y rx en cudaq.kernel) y las funciones forward y backward para el cálculo de expectativas y gradientes.
+    Implementar la función prepare_data para cargar, filtrar y normalizar el dataset (e.g., MNIST dígitos 5 y 6), incluyendo la división en sets de entrenamiento y prueba.
     ```
 
 ### Crear Capa Cuántica (QLayer)
@@ -47,13 +47,13 @@
 
 ## In Progres
 
-### Preparación de Datos (MNIST)
+### Definir Circuito Cuántico
 
-  - priority: medium
-  - workload: Normal
+  - priority: high
+  - workload: Hard
   - defaultExpanded: false
     ```md
-    Implementar la función prepare_data para cargar, filtrar y normalizar el dataset (e.g., MNIST dígitos 5 y 6), incluyendo la división en sets de entrenamiento y prueba.
+    Implementar la clase QuantumFunction o equivalente en el notebook que defina el kernel cuántico (e.g., usando ry y rx en cudaq.kernel) y las funciones forward y backward para el cálculo de expectativas y gradientes.
     ```
 
 ## DONE
