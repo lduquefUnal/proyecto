@@ -11,3 +11,5 @@ pip install ipykernel
 python -m ipykernel install --user --name=quantum_env
 
 docker pull nvcr.io/nvidia/nightly/cuda-quantum:cu12-latest-base
+correr 
+docker run -it --name cuda-quantum nvcr.io/nvidia/nightly/cuda-quantum:cu12-latest

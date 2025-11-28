@@ -1,9 +1,15 @@
-# 1. Usar la imagen base de PyTorch Inference (CPU) que solicitaste
-FROM public.ecr.aws/deep-learning-containers/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-ec2-v1.43
+# 1. Usar la imagen base de NVIDIA CUDA Quantum
+FROM nvcr.io/nvidia/nightly/cuda-quantum:cu12-latest
 
-# 2. Copiar tu código de inferencia. El directorio de trabajo de Lambda es /var/task.
+# Establecer un directorio de trabajo
+WORKDIR /app
+
+# 2. Copiar tu código a la imagen.
 COPY app.py /var/task/
 
-# 3. Definir el punto de entrada de la función (handler)
-# El formato es [nombre_archivo_sin_extension.nombre_funcion]
-CMD ["app.handler"]
+# 3. (Opcional) Definir un comando por defecto. 
+# Por ejemplo, para ejecutar un script de Python al iniciar el contenedor.
+# CMD ["python3", "/app/app.py"]
+
+# Si quieres que inicie una terminal interactiva por defecto, puedes usar:
+CMD ["/bin/bash"]
