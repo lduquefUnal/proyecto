@@ -5,24 +5,21 @@ import base64
 from io import BytesIO
 
 import torch
+import torch.nn.functional as F
 import torchvision.transforms as transforms
 from PIL import Image
 
-# Importamos la clase del modelo desde modelcnn.py (asumiendo que está en el mismo directorio)
-from modelcnn import Hybrid_QNN
+# Importamos solo la clase del modelo Clásico
+from modelos.mnist_classical.code.modelcnn import CNN
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
 
-# --- Funciones requeridas por la plataforma de inferencia (e.g., SageMaker) ---
-
 def model_fn(model_dir):
     """
-    Carga el modelo único desde el directorio de modelos.
-    SageMaker espera encontrar el modelo en este directorio.
-    Esta función se ejecuta una vez al iniciar el contenedor.
+    Carga el modelo CLÁSICO (CNN) desde el directorio.
     """
-    logger.info("Iniciando la carga del modelo...")
+    logger.info("Iniciando la carga del modelo Clásico (CNN)...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info(f"Usando dispositivo: {device}")
     
@@ -31,29 +28,25 @@ def model_fn(model_dir):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Archivo de modelo no encontrado en: {model_path}")
 
-    model = Hybrid_QNN()
+    model = CNN()
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device).eval()
     
-    logger.info("Modelo cargado exitosamente.")
+    logger.info("Modelo Clásico (CNN) cargado exitosamente.")
     
-    # Creamos un diccionario para mantener la compatibilidad con el resto de funciones
     model_info = {
         "model": model,
-        "transform": get_transform_hqnn()
+        "transform": get_transform_cnn()
     }
     return model_info
 
-
 def input_fn(request_body, request_content_type):
     """
-    Deserializa los datos de entrada. Espera un JSON con la clave "input"
-    conteniendo la imagen en formato base64.
+    Deserializa los datos de entrada. Espera un JSON con "input" en base64.
     """
     logger.info(f"Procesando entrada con content-type: {request_content_type}")
     if request_content_type == 'application/json':
         data = json.loads(request_body)
-        
         input_b64 = data.get("input")
         if not input_b64:
             raise ValueError("El JSON de entrada debe contener la clave 'input' con la imagen en base64")
@@ -64,16 +57,14 @@ def input_fn(request_body, request_content_type):
     else:
         raise ValueError(f"Content-Type no soportado: {request_content_type}")
 
-
 def predict_fn(image, model_info):
     """
-    Realiza la inferencia usando el modelo único cargado.
+    Realiza la inferencia usando el modelo CNN cargado.
     """
     model = model_info["model"]
     transform = model_info["transform"]
     
-    logger.info("Aplicando transformación y realizando predicción...")
-    # Aplicamos la transformación específica del modelo
+    logger.info("Aplicando transformación y realizando predicción (Clásica)...")
     input_tensor = transform(image).unsqueeze(0)
     
     device = next(model.parameters()).device
@@ -83,15 +74,13 @@ def predict_fn(image, model_info):
         
     return prediction
 
-
 def output_fn(prediction, response_content_type):
     """
-    Serializa el resultado de la predicción a JSON.
+    Serializa el resultado. Aplica Softmax a los logits del CNN.
     """
     logger.info(f"Serializando salida para content-type: {response_content_type}")
     if response_content_type == 'application/json':
-        # La salida del modelo ya son probabilidades (contiene Softmax)
-        probabilities = prediction[0]
+        probabilities = F.softmax(prediction[0], dim=0)
         predicted_idx = torch.argmax(probabilities).item()
 
         response = {
@@ -102,15 +91,12 @@ def output_fn(prediction, response_content_type):
     else:
         raise ValueError(f"Content-Type no soportado: {response_content_type}")
 
-# --- Funciones de ayuda para las transformaciones ---
-
-def get_transform_hqnn():
-    # Los modelos cuánticos a menudo no necesitan normalización o usan una diferente.
-    # Ajusta esto según el entrenamiento de tu modelo HQNN.
+def get_transform_cnn():
+    """Transformación para el modelo CNN, incluye normalización."""
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
         transforms.Resize((28, 28)),
-        transforms.ToTensor()
-        # Podrías necesitar una normalización a [-1, 1] o [0, pi] dependiendo del encoding
-        # transforms.Normalize((0.5,), (0.5,)) 
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
     ])
+
