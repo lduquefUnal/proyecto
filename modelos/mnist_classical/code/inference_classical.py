@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 # Importamos solo la clase del modelo Clásico
-from modelos.mnist_classical.code.modelcnn import CNN
+from code.modelcnn import CNN
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -52,8 +52,12 @@ def input_fn(request_body, request_content_type):
             raise ValueError("El JSON de entrada debe contener la clave 'input' con la imagen en base64")
 
         image_data = base64.b64decode(input_b64)
-        image = Image.open(BytesIO(image_data))
-        return image
+        image_pil = Image.open(BytesIO(image_data))
+        
+        # --- Pre-procesamiento robusto ---
+        # Asegura que la imagen sea 28x28 y en escala de grises, como espera el modelo.
+        image_processed = image_pil.convert('L').resize((28, 28), Image.Resampling.LANCZOS)
+        return image_processed
     else:
         raise ValueError(f"Content-Type no soportado: {request_content_type}")
 
@@ -99,4 +103,3 @@ def get_transform_cnn():
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
     ])
-

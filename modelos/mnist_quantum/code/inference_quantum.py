@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 # Importamos solo la clase del modelo Híbrido
-from modelos.mnist_quantum.code.modelcnn import Hybrid_QNN
+from code.modelcnn import Hybrid_QNN
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -43,7 +43,9 @@ def model_fn(model_dir):
         raise FileNotFoundError(f"Archivo de modelo no encontrado en: {model_path}")
 
     model = Hybrid_QNN()
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    # Usamos weights_only=True para mayor seguridad, como recomienda la advertencia de PyTorch.
+    # Esto asume que el archivo .pth solo contiene los pesos y no código arbitrario.
+    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     model.to(device).eval()
     
     logger.info("Modelo Híbrido (Hybrid_QNN) cargado exitosamente.")
@@ -107,3 +109,6 @@ def output_fn(prediction, response_content_type):
             'predicted_class': predicted_idx,
             'probabilities': [f"{p:.6f}" for p in probabilities.tolist()]
         }
+        
+        # Devuelve la respuesta como una cadena JSON, como esperaría un endpoint real.
+        return json.dumps(response)

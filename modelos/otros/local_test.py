@@ -1,6 +1,7 @@
 import base64
 import json
 from PIL import Image
+import os
 import logging
 
 # Importa las funciones de tu script de inferencia
@@ -58,18 +59,31 @@ def run_local_test(image_path: str, model_directory: str = "."):
     logger.info("--- PRUEBA FINALIZADA ---")
 
 if __name__ == '__main__':
+    # Obtener la ruta del directorio donde se encuentra este script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
     # --- CONFIGURA TU PRUEBA AQUÍ ---
     # Reemplaza 'test_digit.png' con la ruta a tu imagen de prueba.
     # La imagen debe ser un dígito en escala de grises, idealmente de 28x28 píxeles.
-    test_image_file = 'test_digit.png' 
+    # Construimos la ruta completa a la imagen
+    test_image_file = os.path.join(script_dir, 'test_digit.png')
+
+    logger.info(f"Ruta completa del script: {script_dir}")
+    logger.info(f"Intentando cargar imagen desde: {test_image_file}")
+    # El modelo ('model.pth') se encuentra en el mismo directorio que este script.
+    model_dir = script_dir
 
     try:
-        # Ejecutamos el test, indicando que el modelo está en el directorio actual '.'
-        # El script de prueba está fuera de la carpeta 'code', al mismo nivel que 'model.pth'
-        run_local_test(image_path=test_image_file, model_directory='.')
+        # El error puede ocurrir al cargar el modelo o al cargar la imagen.
+        # El bloque try/except ahora es más específico.
+        run_local_test(image_path=test_image_file, model_directory=model_dir)
 
-    except FileNotFoundError:
-        logger.error(f"Error: El archivo de imagen '{test_image_file}' no fue encontrado.")
-        logger.error("Por favor, asegúrate de tener una imagen de prueba en este directorio.")
+    except FileNotFoundError as e:
+        # Comprobamos si el error viene de no encontrar 'model.pth'
+        if 'model.pth' in str(e):
+            logger.error(f"Error: No se encontró el archivo del modelo 'model.pth' en el directorio '{model_dir}'.")
+            logger.error("Por favor, renombra tu archivo de pesos del modelo (ej: 'mi_modelo.pth') a 'model.pth'.")
+        else:
+            logger.error(f"Error: El archivo de imagen '{test_image_file}' no fue encontrado. Detalles: {e}")
     except Exception as e:
         logger.error(f"Ocurrió un error durante la prueba: {e}", exc_info=True)
