@@ -1,69 +1,36 @@
-# Proocesos
+# Procesos y pasos clave
 
-## TO DO
+Resumen de las tareas realizadas y el flujo seguido para reproducir los experimentos de clasificación híbrida.
 
-### Preparación de Datos (MNIST)
+## Flujo general
+1. **Preparar entorno**  
+   - Instalar PyTorch, TorchVision, TorchAudio, NumPy y Matplotlib (ver `modelos/code/requirement.txt`).  
+   - Instalar CUDA-Q o usar el simulador `qpp-cpu`.  
+   - Configurar Jupyter para ejecutar los notebooks en `proyecto/`.
 
-  - priority: medium
-  - workload: Normal
-  - defaultExpanded: false
-    ```md
-    Implementar la función prepare_data para cargar, filtrar y normalizar el dataset (e.g., MNIST dígitos 5 y 6), incluyendo la división en sets de entrenamiento y prueba.
-    ```
+2. **Preprocesamiento (versión reducida HQNN)**  
+   - Transformación MNIST: recorte 28→20 y average pooling 5×5 → imagen 4×4.  
+   - Flatten a vector de 16 píxeles para alimentar los 16 qubits.
 
-### Crear Capa Cuántica (QLayer)
+3. **Circuito cuántico (HQNN reducido)**  
+   - Codificación con `Ry(arcsin(x))` en 16 qubits.  
+   - PQC escalera con 3 capas de compuertas ZZ (45 bloques CX–RZ–CX).  
+   - Medición all-qubit multi-observable (X, Y, Z en cada qubit → 48 features).
 
-  - priority: medium
-  - workload: Normal
-  - defaultExpanded: false
-    ```md
-    Desarrollar la clase QuantumLayer que encapsula la lógica del circuito cuántico en una capa compatible con PyTorch (nn.Module).
-    ```
+4. **Modelo híbrido**  
+   - Capa cuántica con parámetros entrenables + classifier lineal `Linear(48, 10)`.  
+   - Hiperparámetros por defecto: `n_qubits=16`, `pqc_layers=3`, `batch_size=32`, `epochs=30`, `lr=5e-4` (ajustables en la celda de configuración).
 
-### Definir Modelo HQNN Completo
+5. **Entrenamiento y validación**  
+   - División 80/20 en el dataset reducido de entrenamiento; test en MNIST completo reducido.  
+   - Forward/backward de prueba incluido para verificar gradientes de la capa cuántica.  
+   - Métricas: pérdida y accuracy en validación por época; gráfica final.
 
-  - priority: medium
-  - workload: Normal
-  - defaultExpanded: false
-    ```md
-    Implementar la clase Hybrid_QNN que combine las capas clásicas (nn.Linear, nn.Dropout, torch.relu) con la QuantumLayer.
-    ```
+6. **Inferencia y pesos**  
+   - Pesos preentrenados disponibles (`hybrid_cnn_mnist_weights*.pth`).  
+   - Script de ejemplo: `modelos/code/inference.py` para probar imágenes (e.g., `test_digit.png`).
 
-### Entrenamiento Básico
-
-  - priority: medium
-  - workload: Normal
-  - defaultExpanded: false
-    ```md
-    Configurar el optimizador y la función de pérdida (e.g., optim.Adadelta, nn.BCELoss) e implementar el bucle de entrenamiento para un número inicial de épocas.
-    ```
-
-### Evaluación y Métricas
-
-  - defaultExpanded: false
-    ```md
-    Implementar la función de cálculo de precisión (accuracy_score) y añadir la lógica para registrar los costos y la precisión de entrenamiento y prueba por época.
-    ```
-
-## In Progres
-
-### Definir Circuito Cuántico
-
-  - priority: high
-  - workload: Hard
-  - defaultExpanded: false
-    ```md
-    Implementar la clase QuantumFunction o equivalente en el notebook que defina el kernel cuántico (e.g., usando ry y rx en cudaq.kernel) y las funciones forward y backward para el cálculo de expectativas y gradientes.
-    ```
-
-## DONE
-
-### Setup Entorno Cuántico
-
-  - priority: medium
-  - workload: Easy
-  - defaultExpanded: false
-    ```md
-    Instalar todas las librerías necesarias (CUDA-Q, PyTorch, etc.) y configurar el entorno Python para el proyecto.
-    ```
-
+## Notas y pendientes
+- Ajustar `n_samples_prueba` y `epochs` para iteraciones rápidas si el entrenamiento completo es lento.  
+- Confirmar que CUDA-Q detecta GPU antes de usar `cudaq.set_target("nvidia")`; en CPU usar `qpp-cpu`.  
+- No se incluyen tests automatizados; la validación se realiza ejecutando los notebooks.
